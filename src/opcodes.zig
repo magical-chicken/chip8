@@ -78,6 +78,7 @@ pub fn initTable(alloc: *Allocator) !void {
 
 pub fn execOp(op: u16) !void {
     if (op == 0) return;
+    //    print("op: {x}\n", .{op});
     const nimb: u4 = @intCast((op & 0xf000) >> 12);
     switch (op_table.get(nimb).?) {
         .map => |m| switch (nimb) {
@@ -98,12 +99,12 @@ fn returnSub(op: u16) void {
     chip.PC = addr;
 }
 
-fn displayClear(op: u16) void {
+pub fn displayClear(op: u16) void {
     _ = op;
     for (chip.ram[0x0f00..]) |*pixel| {
         pixel.* = 0;
     }
-
+    graph.screenClear();
     chip.PC += 2;
 }
 
@@ -267,48 +268,68 @@ fn setRegXBitAndRandWithN(op: u16) void {
     chip.PC += 2;
 }
 
-fn drawSprite(op: u16) void {
-    const reg_x = chip.V[(op & 0x0f00) >> 8];
-    var y = chip.V[(op & 0x00f0) >> 4];
+pub fn drawSprite(op: u16) void {
+    const x = chip.V[(op & 0x0f00) >> 8];
+    var y = chip.V[(op & 0x00f0) >> 4] % 32;
     const sprite_h: u8 = @intCast(op & 0x000f);
-    const hh: u8 = y + sprite_h;
+    const hh: u8 = if (y + sprite_h > 32) y + (32 - y) else y + sprite_h; //naive clipping
     var i: u8 = 0;
     while (y < hh) : (y += 1) {
-        loadPixel(reg_x, y, chip.ram[chip.I + i]);
+        loadPixel(
+            x,
+            y,
+            chip.ram[chip.I + i],
+        );
+
         i += 1;
     }
     graph.render();
+
+    // graph.showSprite(x, y, sprite_h);
     graph.delay(17); //about 60fps
 
     chip.PC += 2;
 }
 
-fn loadPixel(x: u8, y: u8, byte: u8) void {
+//returns the bytes to show after processing the sprite segment
+fn loadPixel(x: u8, y: u8, sprite_segment: u8) void {
     const xp = x % 64;
-    const index: u16 = (@as(u16, y % 32) * 8) + (xp / 8);
-    detectCollision(index, byte, xp);
+    const index: u16 = (@as(u16, y) * 8) + (xp / 8);
+    detectCollision(
+        index,
+        sprite_segment,
+        xp,
+    );
 }
 
-fn detectCollision(index: u16, byte: u8, bits: u8) void {
+fn detectCollision(index: u16, sprite_segment: u8, bits: u8) void {
     const left_shift: u3 = @intCast(bits % 8);
     const alignment: u3 = if (left_shift > 0) 1 else 0;
     const right_shift: u3 = @as(u3, @intCast(7 - left_shift)) + alignment;
-    xorSprite(byte >> left_shift, index);
-    if (right_shift > 0) xorSprite(byte << right_shift, index + 1);
+    xorSprite(
+        sprite_segment >> left_shift,
+        index,
+    );
+
+    if (right_shift > 0 and bits + 8 <= 64)
+        xorSprite(
+            sprite_segment << right_shift,
+            index + 1,
+        );
 }
 
-fn xorSprite(byte: u8, index: u16) void {
-    if (byte == 0) return;
+fn xorSprite(sprite_segment: u8, index: u16) void {
+    if (sprite_segment == 0) return;
     const display_byte = &chip.ram[index + 0xf00];
     for (0..8) |i| {
         const bit_index: u8 = @as(u8, 0x01) << @as(u3, @intCast(i));
-        const bit = byte & bit_index;
-        if (bit > 0) {
+        const current_bit = sprite_segment & bit_index;
+        if (current_bit > 0) {
             const display_bit = display_byte.* & bit_index;
-            if (display_bit == bit) {
+            if (display_bit == current_bit) {
                 chip.V[0xf] = 1;
             }
-            display_byte.* ^= bit;
+            display_byte.* ^= current_bit;
         }
     }
 }

@@ -20,6 +20,10 @@ pub fn detectInput() void {
     }
 }
 
+// pub fn windowExit() bool {
+//     return sdl.SDL_PollEvent(&keyboard_event) == 1 and keyboard_event.type == sdl.SDL_WINDOWEVENT and keyboard_event.window.event == sdl.SDL_WINDOWEVENT_CLOSE;
+// }
+
 pub fn loadNextKeyInRegister(reg: *u8) void {
     while (true) {
         if (sdl.SDL_WaitEvent(&keyboard_event) > 0 and keyboard_event.type == sdl.SDL_KEYDOWN) {
