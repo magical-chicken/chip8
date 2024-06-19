@@ -274,6 +274,7 @@ pub fn drawSprite(op: u16) void {
     const sprite_h: u8 = @intCast(op & 0x000f);
     const hh: u8 = if (y + sprite_h > 32) y + (32 - y) else y + sprite_h; //naive clipping
     var i: u8 = 0;
+    chip.V[0xf] = 0; //reset collision
     while (y < hh) : (y += 1) {
         loadPixel(
             x,
@@ -284,14 +285,11 @@ pub fn drawSprite(op: u16) void {
         i += 1;
     }
     graph.render();
-
-    // graph.showSprite(x, y, sprite_h);
     graph.delay(17); //about 60fps
 
     chip.PC += 2;
 }
 
-//returns the bytes to show after processing the sprite segment
 fn loadPixel(x: u8, y: u8, sprite_segment: u8) void {
     const xp = x % 64;
     const index: u16 = (@as(u16, y) * 8) + (xp / 8);
@@ -348,7 +346,7 @@ fn setRegXToDelayTimer(op: u16) void {
 
 fn setRegXToPressedKey(op: u16) void {
     const register = &chip.V[(op & 0x0f00) >> 8];
-    kb.loadNextKeyInRegister(register);
+    if (!kb.loadNextKeyInRegister(register)) return;
     chip.PC += 2;
 }
 

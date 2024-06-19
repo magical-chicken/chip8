@@ -2,6 +2,7 @@ const std = @import("std");
 const opc = @import("opcodes.zig");
 const chip8 = @import("chip8.zig");
 const graph = @import("graphics/display.zig");
+const sound = @import("sound/sound.zig");
 const kb = @import("keyboard/keyboard.zig");
 const Instant = std.time.Instant;
 
@@ -14,7 +15,10 @@ pub fn main() !void {
     var allocator = ar_allocator.allocator();
     defer ar_allocator.deinit();
     defer graph.destroyGraphics();
+    defer sound.freeSoundChunks();
+
     graph.initGraphics();
+    try sound.initSound();
     try opc.initTable(&allocator);
     try load_code();
     try execROM();
@@ -26,11 +30,7 @@ fn execROM() !void {
     while (is_running) {
         try opc.execOp(fetch());
         try timer.checkTime();
-
-        //update io
-
         kb.detectInput(&is_running); //need refactoring
-
     }
 }
 
@@ -39,13 +39,6 @@ fn fetch() u16 {
 }
 
 fn load_code() !void {
-    // for (chip.ram[0..]) |*b| {
-    //     b.* = 0xff;
-    // }
-    // //    graph.showSprite(10, 10, 8);
-    // graph.showSprite(30, 10, 8);
-    // graph.showSprite(50, 10, 8);
-    // graph.present();
     const in = std.io.getStdIn();
     defer in.close();
     var buf_reader = std.io.bufferedReader(in.reader());
@@ -56,7 +49,10 @@ fn load_code() !void {
 
 fn updateTimers() void {
     if (chip.delayTimer > 0) chip.delayTimer -= 1;
-    if (chip.soundTimer > 0) chip.soundTimer -= 1;
+    if (chip.soundTimer > 0) {
+        chip.soundTimer -= 1;
+        if (chip.soundTimer == 0) sound.bip();
+    }
 }
 
 const Timer = struct {

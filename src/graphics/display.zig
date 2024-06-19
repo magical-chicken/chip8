@@ -81,10 +81,8 @@ fn drawPixel(color: u32, x: u32, y: u32) void {
 }
 
 pub fn screenClear() void {
-    //    print("clr screen\n", .{});
     const c = u32AsColor(background_color);
     _ = sdl.SDL_SetRenderDrawColor(rend, c.r, c.g, c.b, c.a);
-
     _ = sdl.SDL_RenderClear(rend);
     sdl.SDL_RenderPresent(rend);
 }

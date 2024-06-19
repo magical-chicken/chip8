@@ -22,20 +22,21 @@ pub fn detectInput(running_flag: *bool) void {
     }
 }
 
-// pub fn windowExit() bool {
-//     return sdl.SDL_PollEvent(&keyboard_event) == 1 and keyboard_event.type == sdl.SDL_WINDOWEVENT and keyboard_event.window.event == sdl.SDL_WINDOWEVENT_CLOSE;
-// }
-
-pub fn loadNextKeyInRegister(reg: *u8) void {
-    while (true) {
-        if (sdl.SDL_WaitEvent(&keyboard_event) > 0 and keyboard_event.type == sdl.SDL_KEYDOWN) {
-            if (getKeyCode(keyboard_event.key.keysym.sym)) |code| {
-                chip.keyboard[code] = 1;
-                reg.* = code;
-                break;
+pub fn loadNextKeyInRegister(reg: *u8) bool {
+    if (sdl.SDL_WaitEvent(&keyboard_event) > 0 and keyboard_event.type == sdl.SDL_KEYDOWN) {
+        if (getKeyCode(keyboard_event.key.keysym.sym)) |code| {
+            chip.keyboard[code] = 1;
+            reg.* = code;
+        }
+    } else if (keyboard_event.type == sdl.SDL_KEYUP) {
+        if (getKeyCode(keyboard_event.key.keysym.sym)) |code| {
+            if (code == reg.* and chip.keyboard[code] == 1) {
+                chip.keyboard[code] = 0;
+                return true;
             }
         }
     }
+    return false;
 }
 
 fn getKeyCode(code: sdl.SDL_Keycode) ?u8 {
