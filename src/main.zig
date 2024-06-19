@@ -7,6 +7,7 @@ const Instant = std.time.Instant;
 
 const chip = chip8.chip;
 const print = std.debug.print;
+var is_running = true;
 
 pub fn main() !void {
     var ar_allocator = std.heap.ArenaAllocator.init(std.heap.page_allocator);
@@ -22,12 +23,12 @@ pub fn main() !void {
 fn execROM() !void {
     const timer = Timer.init(16_670_000, updateTimers);
 
-    while (true) {
+    while (is_running) {
         try opc.execOp(fetch());
         try timer.checkTime();
 
         //update io
-        kb.detectInput();
+        kb.detectInput(&is_running); //need refactoring
     }
 }
 

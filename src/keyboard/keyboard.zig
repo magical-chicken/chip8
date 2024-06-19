@@ -6,8 +6,8 @@ const print = @import("std").debug.print;
 const Event = sdl.SDL_Event;
 pub var keyboard_event: Event = undefined;
 
-pub fn detectInput() void {
-    if (sdl.SDL_PollEvent(&keyboard_event) == 1) {
+pub fn detectInput(running_flag: *bool) void {
+    while (sdl.SDL_PollEvent(&keyboard_event) == 1) {
         if (keyboard_event.type == sdl.SDL_KEYDOWN) {
             if (getKeyCode(keyboard_event.key.keysym.sym)) |code| {
                 chip.keyboard[code] = 1;
@@ -16,6 +16,8 @@ pub fn detectInput() void {
             if (getKeyCode(keyboard_event.key.keysym.sym)) |code| {
                 chip.keyboard[code] = 0;
             }
+        } else if (keyboard_event.type == sdl.SDL_WINDOWEVENT and keyboard_event.window.event == sdl.SDL_WINDOWEVENT_CLOSE) {
+            running_flag.* = false;
         }
     }
 }

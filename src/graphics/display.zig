@@ -4,6 +4,7 @@ const sdl = @cImport({
     @cInclude("/usr/include/SDL2/SDL.h");
 });
 
+//display info
 const offset: u32 = 10;
 const display_w: u32 = 64 * offset;
 const display_h: u32 = 32 * offset;
