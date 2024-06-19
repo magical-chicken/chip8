@@ -11,6 +11,7 @@ const Chip8 = struct {
     soundTimer: u8 = 0,
     display_w: u8 = 64,
     display_h: u8 = 32,
+
     keyboard: [16]u8 = .{0} ** 16,
 };
 

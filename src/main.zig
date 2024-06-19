@@ -28,7 +28,9 @@ fn execROM() !void {
         try timer.checkTime();
 
         //update io
+
         kb.detectInput(&is_running); //need refactoring
+
     }
 }
 
@@ -37,6 +39,13 @@ fn fetch() u16 {
 }
 
 fn load_code() !void {
+    // for (chip.ram[0..]) |*b| {
+    //     b.* = 0xff;
+    // }
+    // //    graph.showSprite(10, 10, 8);
+    // graph.showSprite(30, 10, 8);
+    // graph.showSprite(50, 10, 8);
+    // graph.present();
     const in = std.io.getStdIn();
     defer in.close();
     var buf_reader = std.io.bufferedReader(in.reader());
