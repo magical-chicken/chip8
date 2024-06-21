@@ -49,10 +49,7 @@ fn load_code() !void {
 
 fn updateTimers() void {
     if (chip.delayTimer > 0) chip.delayTimer -= 1;
-    if (chip.soundTimer > 0) {
-        chip.soundTimer -= 1;
-        if (chip.soundTimer == 0) sound.bip();
-    }
+    if (chip.soundTimer > 0) chip.soundTimer -= 1;
 }
 
 const Timer = struct {

@@ -1,6 +1,7 @@
 const chip_lib = @import("chip8.zig");
 const kb = @import("keyboard/keyboard.zig");
 const graph = @import("graphics/display.zig");
+const sound = @import("sound/sound.zig");
 const chip = chip_lib.chip;
 const std = @import("std");
 const print = std.debug.print;
@@ -78,7 +79,6 @@ pub fn initTable(alloc: *Allocator) !void {
 
 pub fn execOp(op: u16) !void {
     if (op == 0) return;
-    //    print("op: {x}\n", .{op});
     const nimb: u4 = @intCast((op & 0xf000) >> 12);
     switch (op_table.get(nimb).?) {
         .map => |m| switch (nimb) {
@@ -357,6 +357,7 @@ fn setDelayTimerToRegX(op: u16) void {
 
 fn setSoundTimerToRegX(op: u16) void {
     chip.soundTimer = chip.V[(op & 0x0f00) >> 8];
+    if (chip.soundTimer > 0) sound.beep();
     chip.PC += 2;
 }
 

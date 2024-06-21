@@ -4,11 +4,11 @@ const sdl = @cImport({
     @cInclude("/usr/include/SDL2/SDL.h");
 });
 
-//display info
-const offset: u32 = 10;
+//display info configurable
+const offset: u32 = 20;
 const display_w: u32 = 64 * offset;
 const display_h: u32 = 32 * offset;
-const foreground_color: u32 = 0xA91d3aff;
+const foreground_color: u32 = 0xfaebd7ff; //A91d3a
 const background_color: u32 = 0x151515ff;
 
 var buffer: [display_w * display_h]u32 = .{background_color} ** (display_w * display_h);
